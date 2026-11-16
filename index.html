@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>عدّاد الفلوس</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<style>
+:root {
+  --bg: #f3f5f1; --surface: #ffffff; --ink: #17231e; --muted: #5d6b64; --line: #dde3dc;
+  --accent: #0f6b4f; --accent-ink: #ffffff; --gold: #b8892b; --gold-soft: #f6ecd6; --warn: #a4462a;
+  --display: "Readex Pro", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --body: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1613; --surface: #17211c; --ink: #e8efe9; --muted: #9aa9a1; --line: #2a3832;
+    --accent: #3fae86; --accent-ink: #06130e; --gold: #d9ad55; --gold-soft: #2b2617; --warn: #e3846a;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+}
+[hidden] { display: none !important; }
+.wrap { max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+h1 { font-family: var(--display); font-weight: 700; font-size: 1.7rem; margin: 0; }
+.sub { margin: 0; color: var(--muted); }
+.tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 4px; }
+.tabs button { font: inherit; font-weight: 600; border: none; border-radius: 10px; padding: 10px; background: none; color: var(--muted); cursor: pointer; }
+.tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+.cam { position: relative; border-radius: 18px; overflow: hidden; background: #000; aspect-ratio: 4 / 3; max-width: 100%; }
+.cam video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cam .label {
+  position: absolute; inset: auto 12px 12px 12px; background: rgba(0,0,0,.6); color: #fff;
+  border-radius: 12px; padding: 8px 12px; font-family: var(--display); font-weight: 600; text-align: center;
+}
+.cam.flash::after { content: ""; position: absolute; inset: 0; border: 6px solid #3fae86; border-radius: 18px; animation: fl .5s ease-out forwards; }
+@keyframes fl { from { opacity: 1; } to { opacity: 0; } }
+.start {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  background: var(--surface); color: var(--ink); text-align: center; padding: 16px;
+}
+.btn {
+  font: inherit; font-family: var(--display); font-weight: 600; font-size: 1.05rem; padding: 12px 20px;
+  border-radius: 14px; border: none; background: var(--accent); color: var(--accent-ink); cursor: pointer;
+}
+.btn.line { background: none; color: var(--accent); border: 1.5px solid var(--accent); }
+.btn:focus-visible, .tabs button:focus-visible, .teach button:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.tip { background: var(--gold-soft); border-radius: 14px; padding: 12px 14px; font-size: .92rem; border-inline-start: 4px solid var(--gold); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.teach { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+.teach button {
+  font: inherit; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 14px 8px;
+  border-radius: 14px; border: 1.5px solid var(--line); background: var(--bg); color: var(--ink); cursor: pointer;
+  user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: none;
+}
+.teach button b { font-family: var(--display); font-size: 1.15rem; }
+.teach button small { color: var(--muted); font-variant-numeric: tabular-nums; }
+.teach button.ok { border-color: var(--accent); }
+.teach button.ok small { color: var(--accent); }
+.teach button.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.teach button.active small { color: var(--accent-ink); }
+.teach button.none b { font-size: 1rem; }
+.big { font-family: var(--display); font-weight: 700; font-size: 2.6rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.big .cur { font-size: 1.1rem; color: var(--gold); margin-inline-start: 6px; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th { text-align: start; font-size: .8rem; color: var(--muted); font-weight: 500; padding: 4px 0; }
+td { padding: 6px 0; border-top: 1px solid var(--line); }
+.num { text-align: end; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.note { font-size: .88rem; color: var(--muted); margin: 0; }
+.ghost { font: inherit; background: none; border: none; color: var(--muted); cursor: pointer; padding: 6px; text-decoration: underline; }
+.meter { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.meter i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .15s; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <h1>عدّاد الفلوس</h1>
+    <p class="sub">عدّي الورق قدام الكاميرا ورقة ورا ورقة، وهو يعدّ ويجمع. شغّال على الموبايل من غير نت ولا اشتراك.</p>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button type="button" role="tab" id="tabCount" aria-selected="true">عِدّ</button>
+    <button type="button" role="tab" id="tabTeach" aria-selected="false">علّم البرنامج</button>
+  </div>
+
+  <div class="cam" id="cam">
+    <video id="video" playsinline muted></video>
+    <div class="label" id="live" hidden>...</div>
+    <div class="start" id="startBox">
+      <p class="sub" id="startMsg">الكاميرا لسه مقفولة.</p>
+      <button class="btn" id="startBtn" type="button">شغّل الكاميرا</button>
+    </div>
+  </div>
+
+  <!-- COUNT VIEW -->
+  <section id="viewCount" class="wrap" style="gap:16px">
+    <div class="tip" id="needTeach">
+      أول مرة بس: روح على <b>علّم البرنامج</b> ووريه كل فئة. بياخد حوالي ٣ دقايق، وبيتحفظ على الموبايل.
+    </div>
+    <div class="card">
+      <div class="row">
+        <div class="big"><span id="total">٠</span><span class="cur">جنيه</span></div>
+        <span class="note" id="pieces">٠ ورقة</span>
+      </div>
+      <table>
+        <thead><tr><th>الفئة</th><th>العدد</th><th class="num">المبلغ</th></tr></thead>
+        <tbody id="breakdown"></tbody>
+      </table>
+      <div class="row">
+        <button class="btn line" id="undo" type="button">شيل آخر ورقة</button>
+        <button class="ghost" id="reset" type="button">صفّر العدّاد</button>
+      </div>
+    </div>
+    <div class="tip">
+      <b>إزاي تعدّ:</b> حط الورقة قدام الكاميرا لحد ما تسمع صوت، شيلها خالص، وبعدين حط اللي بعدها. لازم الكاميرا تشوف الترابيزة فاضية بين كل ورقة والتانية، عشان ميعدّش نفس الورقة مرتين.
+    </div>
+  </section>
+
+  <!-- TEACH VIEW -->
+  <section id="viewTeach" class="wrap" style="gap:16px" hidden>
+    <div class="tip">
+      <b>إزاي تعلّمه:</b> امسك ورقة قدام الكاميرا و<b>اضغط مطوّل</b> على الفئة بتاعتها، وحرّك الورقة شوية وقلبها على الوشين. خلّي كل فئة توصل ٣٠ صورة على الأقل. وما تنساش <b>"مفيش فلوس"</b>: صوّر بيها الترابيزة فاضية.
+    </div>
+    <div class="teach" id="teach"></div>
+    <div class="row">
+      <span class="note" id="saveMsg"></span>
+      <button class="ghost" id="wipe" type="button">امسح كل اللي اتعلّمه</button>
+    </div>
+    <div class="card" id="wipeConfirm" hidden>
+      <p style="margin:0">متأكد؟ هتحتاج تعلّمه من الأول.</p>
+      <div class="row" style="justify-content:flex-start">
+        <button class="btn" id="wipeYes" type="button">أيوه امسح</button>
+        <button class="btn line" id="wipeNo" type="button">لأ</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/knn-classifier@1.2.6/dist/knn-classifier.min.js"></script>
+<script>
+const DENOMS = [200, 100, 50, 20, 10, 5, 1];
+const NONE = "none";
+const MIN_SAMPLES = 15;
+const STORE_KEY = "money-counter-knn-v1";
+const fmt = n => Number(n).toLocaleString("ar-EG");
+const $ = id => document.getElementById(id);
+
+let net = null, knn = null, stream = null, loopOn = false, busy = false;
+let mode = "count";
+let teaching = null;          // label being taught while the button is held
+const counts = {};             // denomination -> count
+const history = [];            // order of counted bills, for undo
+let armed = true, streak = { label: null, n: 0 }, emptyStreak = 0;
+let audio = null;
+
+// ---------- UI ----------
+function setMode(m) {
+  mode = m;
+  $("tabCount").setAttribute("aria-selected", m === "count");
+  $("tabTeach").setAttribute("aria-selected", m === "teach");
+  $("viewCount").hidden = m !== "count";
+  $("viewTeach").hidden = m !== "teach";
+  streak = { label: null, n: 0 };
+}
+$("tabCount").onclick = () => setMode("count");
+$("tabTeach").onclick = () => setMode("teach");
+
+function sampleCounts() {
+  return knn ? knn.getClassExampleCount() : {};
+}
+function isReady() {
+  const c = sampleCounts();
+  const taught = DENOMS.filter(d => (c[d] || 0) >= MIN_SAMPLES).length;
+  return (c[NONE] || 0) >= MIN_SAMPLES && taught >= 1;
+}
+
+function renderTeach() {
+  const c = sampleCounts();
+  const box = $("teach");
+  if (!box.children.length) {
+    [...DENOMS.map(String), NONE].forEach(label => {
+      const b = document.createElement("button");
+      b.type = "button"; b.dataset.label = label;
+      if (label === NONE) b.classList.add("none");
+      b.innerHTML = "<b></b><small></small>";
+      b.querySelector("b").textContent = label === NONE ? "مفيش فلوس" : fmt(label) + " جنيه";
+      const start = e => { e.preventDefault(); if (!net) return; teaching = label; b.classList.add("active"); try { b.setPointerCapture(e.pointerId); } catch {} };
+      const stop = () => { if (teaching === label) { teaching = null; b.classList.remove("active"); save(); } };
+      b.addEventListener("pointerdown", start);
+      b.addEventListener("pointerup", stop);
+      b.addEventListener("pointercancel", stop);
+      b.addEventListener("lostpointercapture", stop);
+      b.addEventListener("contextmenu", e => e.preventDefault());
+      box.append(b);
+    });
+  }
+  [...box.children].forEach(b => {
+    const n = c[b.dataset.label] || 0;
+    b.querySelector("small").textContent = fmt(n) + " صورة";
+    b.classList.toggle("ok", n >= MIN_SAMPLES);
+  });
+  $("needTeach").hidden = isReady();
+}
+
+function renderCount() {
+  const tb = $("breakdown"); tb.innerHTML = "";
+  let total = 0, pieces = 0;
+  DENOMS.forEach(d => {
+    const n = counts[d] || 0;
+    if (!n) return;
+    total += n * d; pieces += n;
+    const tr = document.createElement("tr");
+    tr.innerHTML = "<td></td><td></td><td class='num'></td>";
+    tr.children[0].textContent = fmt(d) + " جنيه";
+    tr.children[1].textContent = fmt(n);
+    tr.children[2].textContent = fmt(n * d);
+    tb.append(tr);
+  });
+  if (!pieces) tb.innerHTML = "<tr><td colspan='3' class='note'>لسه ماعدّيناش حاجة.</td></tr>";
+  $("total").textContent = fmt(total);
+  $("pieces").textContent = fmt(pieces) + " ورقة";
+}
+
+$("undo").onclick = () => {
+  const d = history.pop();
+  if (d != null) { counts[d]--; renderCount(); }
+};
+$("reset").onclick = () => { for (const k in counts) delete counts[k]; history.length = 0; renderCount(); };
+$("wipe").onclick = () => { $("wipeConfirm").hidden = false; };
+$("wipeNo").onclick = () => { $("wipeConfirm").hidden = true; };
+$("wipeYes").onclick = () => {
+  $("wipeConfirm").hidden = true;
+  if (knn) knn.clearAllClasses();
+  try { localStorage.removeItem(STORE_KEY); } catch {}
+  $("saveMsg").textContent = "اتمسح.";
+  renderTeach();
+};
+
+// ---------- feedback ----------
+function beep() {
+  try {
+    if (!audio) return;
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.frequency.value = 1100; g.gain.value = 0.15;
+    o.connect(g); g.connect(audio.destination);
+    o.start(); o.stop(audio.currentTime + 0.09);
+  } catch {}
+  try { navigator.vibrate && navigator.vibrate(60); } catch {}
+  const cam = $("cam");
+  cam.classList.remove("flash"); void cam.offsetWidth; cam.classList.add("flash");
+}
+
+// ---------- save / load the taught examples on the phone ----------
+function toB64(f32) {
+  const u8 = new Uint8Array(f32.buffer, f32.byteOffset, f32.byteLength);
+  let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+function fromB64(b64) {
+  const s = atob(b64), u8 = new Uint8Array(s.length);
+  for (let i = 0; i < s.length; i++) u8[i] = s.charCodeAt(i);
+  return new Float32Array(u8.buffer);
+}
+function save() {
+  if (!knn) return;
+  const ds = knn.getClassifierDataset(), out = {};
+  for (const k in ds) out[k] = { shape: ds[k].shape, data: toB64(ds[k].dataSync()) };
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify(out));
+    $("saveMsg").textContent = "اتحفظ على الموبايل.";
+  } catch {
+    $("saveMsg").textContent = "مقدرتش أحفظ. التعليم هيفضل لحد ما تقفل الصفحة بس.";
+  }
+  renderTeach();
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (!raw) return;
+    const obj = JSON.parse(raw), ds = {};
+    for (const k in obj) ds[k] = tf.tensor2d(fromB64(obj[k].data), obj[k].shape);
+    knn.setClassifierDataset(ds);
+  } catch { /* start fresh */ }
+}
+
+// ---------- camera + model ----------
+$("startBtn").onclick = async () => {
+  try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch {}
+  $("startBtn").disabled = true;
+  $("startMsg").textContent = "بفتح الكاميرا...";
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+  } catch {
+    $("startMsg").textContent = "مقدرتش أفتح الكاميرا. اسمح للمتصفح يستخدمها، واتأكد إن الرابط بيبدأ بـ https.";
+    $("startBtn").disabled = false;
+    return;
+  }
+  const v = $("video");
+  v.srcObject = stream;
+  await v.play();
+  $("startMsg").textContent = "بحمّل العقل بتاع البرنامج (أول مرة بس محتاج نت)...";
+  try {
+    if (!net) {
+      await tf.ready();
+      net = await mobilenet.load({ version: 1, alpha: 0.5 });
+      knn = knnClassifier.create();
+      load();
+    }
+  } catch {
+    $("startMsg").textContent = "مقدرتش أحمّل البرنامج. اتأكد من النت أول مرة وجرّب تاني.";
+    $("startBtn").disabled = false;
+    return;
+  }
+  $("startBox").hidden = true;
+  $("live").hidden = false;
+  renderTeach();
+  loopOn = true;
+  tick();
+};
+
+async function tick() {
+  if (!loopOn) return;
+  if (!busy) {
+    busy = true;
+    try { await step(); } catch (e) { console.error(e); }
+    busy = false;
+  }
+  setTimeout(tick, 120);
+}
+
+async function step() {
+  const v = $("video");
+  if (v.readyState < 2) return;
+  const emb = tf.tidy(() => net.infer(v, true));
+  try {
+    if (mode === "teach") {
+      if (teaching) {
+        knn.addExample(emb, teaching);
+        renderTeach();
+        $("live").textContent = "بتعلّم: " + (teaching === NONE ? "مفيش فلوس" : fmt(teaching) + " جنيه");
+      } else {
+        $("live").textContent = "امسك ورقة واضغط مطوّل على فئتها";
+      }
+      return;
+    }
+    // count mode
+    if (!isReady()) { $("live").textContent = "علّم البرنامج الأول"; return; }
+    const r = await knn.predictClass(emb, 7);
+    const conf = r.confidences[r.label] || 0;
+    const label = r.label;
+    if (label === NONE) {
+      emptyStreak++;
+      streak = { label: null, n: 0 };
+      if (emptyStreak >= 3) armed = true;
+      $("live").textContent = armed ? "حط الورقة" : "شيل الورقة";
+      return;
+    }
+    emptyStreak = 0;
+    if (conf < 0.7) { streak = { label: null, n: 0 }; $("live").textContent = "مش واضحة، ثبّت الورقة"; return; }
+    if (streak.label === label) streak.n++; else streak = { label, n: 1 };
+    $("live").textContent = fmt(label) + " جنيه";
+    if (armed && streak.n >= 4) {
+      const d = Number(label);
+      counts[d] = (counts[d] || 0) + 1;
+      history.push(d);
+      armed = false;
+      beep();
+      renderCount();
+      $("live").textContent = "+ " + fmt(d) + " جنيه، شيل الورقة";
+    }
+  } finally {
+    emb.dispose();
+  }
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) teaching = null;
+});
+
+renderCount();
+renderTeach();
+</script>
+</body>
+</html>
